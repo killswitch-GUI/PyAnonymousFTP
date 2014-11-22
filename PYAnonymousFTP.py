@@ -119,7 +119,7 @@ def portscan(address,port): # will perfrom a socket connection and if error dete
 	for portscan in port:
 		try:
 			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			s.settimeout(100) #how long will we wait to hear for a connection "NEED TO ADD OPTION FOR THIS"
+			s.settimeout(5) #how long will we wait to hear for a connection "NEED TO ADD OPTION FOR THIS"
 			s.connect((address,21))
 			status = 1
 			if verbose == 1 or verbose == 2:
