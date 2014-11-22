@@ -99,6 +99,7 @@ def AnonLogin(address,port):
                 status="Success"
                 print bcolors.Cyan + "$$$$$$--Money--$$$$$$", bcolors.ENDC
                 print "[*]", address, "is a", status, "at a Anonymous login on PORT:", port
+                input("Press Enter to continue...")
         except ValueError:
             status="Failure"
             if verbose == 1 or verbose == 2:
