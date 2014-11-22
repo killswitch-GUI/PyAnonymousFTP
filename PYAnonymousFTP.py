@@ -132,7 +132,7 @@ def portscan(address,port): # will perfrom a socket connection and if error dete
 			if verbose == 2:
 				print msg
 				if verbose == 2:
-					print bcolors.red + "[*] Failure on port:",portscan, "at:", address, + bcolor.ENDC
+					print bcolors.Red + "[*] Failure on port:",portscan, "at:", address, + bcolor.ENDC
 			err = True
 		except: continue # if its not a socket error? Do i need this?
 		finally: #insuring that the socket is closed to be reopened 
