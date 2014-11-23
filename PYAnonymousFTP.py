@@ -3,6 +3,9 @@ import time
 import datetime
 import socket
 import random
+import signal
+import ipaddr
+
 #import threading #WILL SUPPORT
 #import ipaddr #GOOGLE SORCE CODE
 
@@ -22,7 +25,8 @@ def Menu():
 	Servers using FTP and anonymous connections.\n\
 	\n\
 	1)Use IP RANGE AND CONNECT and check for Anonymous logins.\n\
-	2)WILL USE MASKING AND SUPPORT IN FUTURE\n"
+	2)WILL USE MASKING AND SUPPORT IN FUTURE\n\
+	3)IP List Creator\n"
 	#logging = str(raw_input("[*] Would you like to enable loging? Yes(Y) or No(N)"))   #Will Support Logging of data and what you want to store
 	verbose = str(raw_input("[*] Would you like it verbose or VV? Yes(Y) or VV(vv) or Enter for NO: "))
 	if verbose == "yes" or verbose == "Yes" or verbose ==  "YES" or verbose == "y" or verbose == "Y" or verbose == "v":
@@ -64,8 +68,38 @@ def ChoiceSelection():
 					print bcolors.Green + "[*] Starting Anonymous Login at:", address, bcolors.ENDC
 				AnonLogin(address,port)
 			status = 0	
+	if choice == "3":
+		count = 0
+		net4 = raw_input("[*]What is your IP: ") 
+		if verbose == 1 or verbose == 2:
+			print bcolors.Green + "[*] starting to open file as Ipaddress.txt", bcolors.ENDC
+		try:
+			output = open("Ipaddress.txt" ,"ab+")
+		except:
+			print bcolors.Red + "Could not make file!", bcolors.ENDC
+			main()
+		net4 = ipaddr.IPv4Network(net4)
+		if verbose == 1 or verbose == 2:
+			print bcolors.Green + "[*] starting to write IP's to file", bcolors.ENDC
+		for x in net4.iterhosts():  # will use this for masking
+			count += 1
+			k = x
+			k = str(k)
+			try:
+				output.write(k + "\n");
+			except:
+				print bcolors.Red + "Could not write to file!", bcolors.ENDC 
+				print IOError
+				print "Returning home...."
+				main()
+		output.close()
+		print bcolors.Green + "[*] Saved as Ipaddress.txt in working DIR", bcolors.ENDC
+		print bcolors.Green + "[*] Worte:", count, " IP's", bcolors.ENDC
+		
 	main()
 
+def signal_handler(signum, frame):
+	raise Exception("Timed out!")
 	
 
 def ipRange(start_ip, end_ip):
@@ -86,11 +120,16 @@ def ipRange(start_ip, end_ip):
 
 def AnonLogin(address,port):
 	ftp=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	ftp.settimeout(15)
+	ftp.settimeout(9)
 	try: 
 		ftp.connect((address, port)); # passing it our address and port we want to connect to
 		banner=ftp.recv(45)
-		banner += ftp.recv(1024) # receive the rest of the banner
+		signal.signal(signal.SIGALRM, signal_handler)
+		signal.alarm(3)
+		try:
+			banner += ftp.recv(1024) # receive the rest of the banner
+		except: 
+			pass
 		if verbose == 1 or verbose ==2:
 			print banner
 		banner.replace("\r\n", ' ')
@@ -98,7 +137,8 @@ def AnonLogin(address,port):
 		ftp.recv(1024)
 		ftp.send("PASS anon@\r\n")
 		response=ftp.recv(1024)
-
+		if verbose == 1 or verbose == 2:
+			print response
 		try:
 			if response.index("230")!=-1:
 				status="Success"
@@ -108,7 +148,7 @@ def AnonLogin(address,port):
 		except ValueError:
 			status="Failure"
 			if verbose == 1 or verbose == 2:
-				print bcolors.Red + "[*]", status, "at logging in at", address, bcolors.ENDC
+				print bcolors.FAIL + "[*]", status, "at logging in at", address, bcolors.ENDC
 		else:
 			print status
 	except socket.error: # if we cant connect at all we will pass
@@ -125,7 +165,7 @@ def portscan(address,port): # will perfrom a socket connection and if error dete
 	for portscan in port:
 		try:
 			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			s.settimeout(2) #how long will we wait to hear for a connection "NEED TO ADD OPTION FOR THIS"
+			s.settimeout(1) #how long will we wait to hear for a connection "NEED TO ADD OPTION FOR THIS"
 			s.connect((address,21))
 			if verbose == 1 or verbose == 2:
 				print bcolors.Magenta + "[*]", address,"on: ",portscan,"is OPEN", bcolors.ENDC
@@ -136,8 +176,8 @@ def portscan(address,port): # will perfrom a socket connection and if error dete
 			status = 1
 		except socket.error as msg: # we can print the caught error
 			if verbose == 2:
-				print bcolors.Red +"[*]", msg, bcolors.ENDC
-				print bcolors.Red + "[*] Failure on port:", portscan, "at:", address, bcolors.ENDC
+				print bcolors.Yellow +"[*]", msg, bcolors.ENDC
+				print bcolors.Yellow + "[*] Failure on port:", portscan, "at:", address, bcolors.ENDC
 			err = True
 		except: continue # if its not a socket error? Do i need this?
 		finally: #insuring that the socket is closed to be reopened 
