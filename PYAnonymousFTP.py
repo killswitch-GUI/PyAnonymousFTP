@@ -6,6 +6,8 @@ import random
 #import threading #WILL SUPPORT
 #import ipaddr #GOOGLE SORCE CODE
 
+#status = 0 # status of connection
+
 def Menu():
 #	global loggin
 	global choice
@@ -33,6 +35,7 @@ def Menu():
 	return choice, #logging # will return loggin value
 	
 def ChoiceSelection():
+	global status
 	if choice == "1":
 		if verbose == 1 or verbose == 2:
 			print bcolors.Green + "[*] Starting Ip Range Creation", bcolors.ENDC
@@ -48,6 +51,10 @@ def ChoiceSelection():
 		start_ip = raw_input("[*] What is your start IP: ")
 		end_ip = raw_input("[*] What is your ending IP: ")
 		ipRange(start_ip,end_ip)
+		status = 0
+		#port = []
+		#port.append(21)
+		#port.append(990)
 		if verbose == 1 or verbose == 2:
 			print bcolors.Green + "[*] starting Port Scan", bcolors.ENDC
 		for address in ip_range:
@@ -56,6 +63,7 @@ def ChoiceSelection():
 				if verbose == 1 or verbose == 2:
 					print bcolors.Green + "[*] Starting Anonymous Login at:", address, bcolors.ENDC
 				AnonLogin(address,port)
+			status = 0	
 	main()
 
 	
@@ -77,55 +85,55 @@ def ipRange(start_ip, end_ip):
    return ip_range
 
 def AnonLogin(address,port):
-
-    ftp=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ftp.settimeout(15)
-    try: 
-        ftp.connect((address, port)); # passing it our address and port we want to connect to
-        banner=ftp.recv(45)
-        banner += ftp.recv(1024) # receive the rest of the banner
-        if verbose == 1 or verbose ==2:
+	ftp=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	ftp.settimeout(15)
+	try: 
+		ftp.connect((address, port)); # passing it our address and port we want to connect to
+		banner=ftp.recv(45)
+		banner += ftp.recv(1024) # receive the rest of the banner
+		if verbose == 1 or verbose ==2:
 			print banner
-        banner.replace("\r\n", ' ')
-        ftp.send("USER anonymous\r\n")
-        ftp.recv(1024)
-        ftp.send("PASS anon@\r\n")
-        response=ftp.recv(1024)
+		banner.replace("\r\n", ' ')
+		ftp.send("USER anonymous\r\n")
+		ftp.recv(1024)
+		ftp.send("PASS anon@\r\n")
+		response=ftp.recv(1024)
 
-        try:
-            if response.index("230")!=-1:
-                status="Success"
-                print bcolors.Cyan + "$$$$$$--Money--$$$$$$", bcolors.ENDC
-                print "[*]", address, "is a", status, "at a Anonymous login on PORT:", port
-                input("Press Enter to continue...")
-        except ValueError:
-            status="Failure"
-            if verbose == 1 or verbose == 2:
+		try:
+			if response.index("230")!=-1:
+				status="Success"
+				print bcolors.Cyan + "$$$$$$--Money--$$$$$$", bcolors.ENDC
+				print "[*]", address, "is a", status, "at a Anonymous login on PORT:", port
+				input("Press Enter to continue...")
+		except ValueError:
+			status="Failure"
+			if verbose == 1 or verbose == 2:
 				print bcolors.Red + "[*]", status, "at logging in at", address, bcolors.ENDC
-        else:
-            print status
-    except socket.error: # if we cant connect at all we will pass
-        pass
-    ftp.close()
-    return   
+		else:
+			print status
+	except socket.error: # if we cant connect at all we will pass
+		pass
+	ftp.close()
+	return
 
 def portscan(address,port): # will perfrom a socket connection and if error detection is seen it will return status of 0
-	global status
 	global verbose
+	global status
+	status = 0
 	port = [21] #still working this list / LOOP out but it works for now
 	address = str(address)
 	for portscan in port:
 		try:
 			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			s.settimeout(3) #how long will we wait to hear for a connection "NEED TO ADD OPTION FOR THIS"
+			s.settimeout(2) #how long will we wait to hear for a connection "NEED TO ADD OPTION FOR THIS"
 			s.connect((address,21))
-			status = 1
 			if verbose == 1 or verbose == 2:
-				print "[*]", adress, "on: ", portscan, "is OPEN"
+				print bcolors.Magenta + "[*]", address,"on: ",portscan,"is OPEN", bcolors.ENDC
+				if portscan == 990:
+					print bcolors.Magenta + "[-] Found a SFTP service possibly on", portscan, bcolors.ENDC
 			s.shutdown(socket.SHUT_RDWR)
 			s.close
-			w -= 1
-			return status
+			status = 1
 		except socket.error as msg: # we can print the caught error
 			if verbose == 2:
 				print bcolors.Red +"[*]", msg, bcolors.ENDC
@@ -134,7 +142,9 @@ def portscan(address,port): # will perfrom a socket connection and if error dete
 		except: continue # if its not a socket error? Do i need this?
 		finally: #insuring that the socket is closed to be reopened 
 			s.close()
-		
+	return status
+	
+	
 class bcolors:
 	HEADER = '\033[95m'
 	OKBLUE = '\033[94m'
@@ -155,7 +165,6 @@ class bcolors:
 	
 
 def main():
-	global status
 	global choice
 	global port
 	global verbose
@@ -163,7 +172,6 @@ def main():
 	global end_ip
 	print bcolors.WARNING + "Warning: This will be used at your own risk scanning the web :)" + bcolors.ENDC
 	port = 21 # global port we want to check 
-	status = 0 # status of connection
 	Menu() #Print Menu
 	ChoiceSelection() # What we do if we pick something
 
