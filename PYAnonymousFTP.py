@@ -18,9 +18,6 @@ def Menu():
 		##############################\n\
 	This tools is for scanning the net for FTP\n\
 	Servers using FTP and anonymous connections.\n\
-	when it finds them it trys to connect. \n\
-	if Anonymous connections are supported it will display it.\n\
-	Loggin will be next!\n\
 	\n\
 	1)Use IP RANGE AND CONNECT and check for Anonymous logins.\n\
 	2)WILL USE MASKING AND SUPPORT IN FUTURE\n"
@@ -82,6 +79,7 @@ def ipRange(start_ip, end_ip):
 def AnonLogin(address,port):
 
     ftp=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    ftp.settimeout(15)
     try: 
         ftp.connect((address, port)); # passing it our address and port we want to connect to
         banner=ftp.recv(45)
@@ -119,7 +117,7 @@ def portscan(address,port): # will perfrom a socket connection and if error dete
 	for portscan in port:
 		try:
 			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			s.settimeout(5) #how long will we wait to hear for a connection "NEED TO ADD OPTION FOR THIS"
+			s.settimeout(3) #how long will we wait to hear for a connection "NEED TO ADD OPTION FOR THIS"
 			s.connect((address,21))
 			status = 1
 			if verbose == 1 or verbose == 2:
@@ -130,9 +128,8 @@ def portscan(address,port): # will perfrom a socket connection and if error dete
 			return status
 		except socket.error as msg: # we can print the caught error
 			if verbose == 2:
-				print msg
-				if verbose == 2:
-					print bcolors.Red + "[*] Failure on port:",portscan, "at:", address, + bcolors.ENDC
+				print bcolors.Red +"[*]", msg, bcolors.ENDC
+				print bcolors.Red + "[*] Failure on port:", portscan, "at:", address, bcolors.ENDC
 			err = True
 		except: continue # if its not a socket error? Do i need this?
 		finally: #insuring that the socket is closed to be reopened 
