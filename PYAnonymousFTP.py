@@ -112,7 +112,7 @@ def AnonLogin(address,port):
 def portscan(address,port): # will perfrom a socket connection and if error detection is seen it will return status of 0
 	global status
 	global verbose
-	port = [20,21] #still working this list / LOOP out but it works for now
+	port = [21] #still working this list / LOOP out but it works for now
 	address = str(address)
 	for portscan in port:
 		try:
